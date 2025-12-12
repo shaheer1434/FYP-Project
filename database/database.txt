@@ -1,0 +1,1 @@
+this is our database folder related all database script and file will be here.

@@ -1,0 +1,1 @@
+this is our ai model folder here model trainig and other related to model.

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "./pages/Login";
 import { SignupPage } from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Reports from "./pages/Reports";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       {/* Default Redirect */}
       {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
          <Route path="/dashboard" element={<Dashboard />} />
+         <Route path="/reports" element={<Reports />} />
         
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />

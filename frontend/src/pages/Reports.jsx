@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("accident");
 

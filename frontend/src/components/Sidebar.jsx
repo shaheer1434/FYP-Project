@@ -1,3 +1,4 @@
+import { NavLink } from "react-router-dom";
 import {
   FaShieldAlt,
   FaThLarge,
@@ -19,30 +20,34 @@ const Sidebar = () => {
 
       {/* Menu */}
       <nav className="flex flex-col gap-4 text-gray-300">
-        
-        <SidebarItem icon={<FaThLarge />} label="Dashboard" active />
-        <SidebarItem icon={<FaInfoCircle />} label="About Us" />
-        <SidebarItem icon={<FaEnvelope />} label="Contact Us" />
-        <SidebarItem icon={<FaChartBar />} label="Reports" />
-        <SidebarItem icon={<FaCog />} label="Settings" />
+
+        <SidebarItem to="/dashboard" icon={<FaThLarge />} label="Dashboard" />
+        <SidebarItem to="/about" icon={<FaInfoCircle />} label="About Us" />
+        <SidebarItem to="/contact" icon={<FaEnvelope />} label="Contact Us" />
+        <SidebarItem to="/reports" icon={<FaChartBar />} label="Reports" />
+        <SidebarItem to="/settings" icon={<FaCog />} label="Settings" />
 
       </nav>
     </aside>
   );
 };
 
-const SidebarItem = ({ icon, label, active }) => {
+const SidebarItem = ({ icon, label, to }) => {
   return (
-    <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition
-        ${active
-          ? "bg-white/10 border border-white/20 text-white"
-          : "hover:bg-white/10"
-        }`}
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition
+        ${
+          isActive
+            ? "bg-white/10 border border-white/20 text-white"
+            : "hover:bg-white/10 text-gray-300"
+        }`
+      }
     >
       {icon}
       <span>{label}</span>
-    </div>
+    </NavLink>
   );
 };
 

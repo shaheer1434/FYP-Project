@@ -6,10 +6,9 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 import TrendChart from "../components/dashboard/TrendChart";
 import DashboardLayout from "../components/DashboardLayout";
 
-
 const Dashboard = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout showHeader={true}>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CrimeAlerts />

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
+import { useNavigate } from "react-router-dom";
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("accident");
+  const navigate = useNavigate();
 
-  // Dummy Reports Data
+  // Dummy Data
   const reports = [
     {
       id: 1,
@@ -31,29 +33,17 @@ const Reports = () => {
 
   return (
     <DashboardLayout showHeader={false}>
-      
       <div className="min-h-screen bg-black text-white p-6">
-        
-        {/* Page Title */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-500">
-            ShieldAI Reports
-          </h1>
 
-          {/* Notification Bell */}
-          <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-            🔔
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold text-blue-500 mb-6">
+          ShieldAI Reports
+        </h1>
 
-        {/* Tabs */}
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setActiveTab("accident")}
             className={`px-4 py-2 rounded-lg ${
-              activeTab === "accident"
-                ? "bg-blue-600"
-                : "bg-gray-800"
+              activeTab === "accident" ? "bg-blue-600" : "bg-gray-800"
             }`}
           >
             Accident Reports
@@ -62,40 +52,30 @@ const Reports = () => {
           <button
             onClick={() => setActiveTab("crime")}
             className={`px-4 py-2 rounded-lg ${
-              activeTab === "crime"
-                ? "bg-red-600"
-                : "bg-gray-800"
+              activeTab === "crime" ? "bg-red-600" : "bg-gray-800"
             }`}
           >
             Crime Reports
           </button>
         </div>
 
-        {/* Reports Cards */}
         <div className="grid gap-4">
           {reports
-            .filter((report) =>
+            .filter((r) =>
               activeTab === "accident"
-                ? report.type === "Accident"
-                : report.type !== "Accident"
+                ? r.type === "Accident"
+                : r.type !== "Accident"
             )
             .map((report) => (
               <div
                 key={report.id}
-                className="bg-gray-900 border border-gray-700 rounded-xl p-4 flex justify-between items-center"
+                onClick={() => navigate(`/incident/${report.id}`)}
+                className="bg-gray-900 border border-gray-700 rounded-xl p-4 flex justify-between items-center cursor-pointer hover:bg-gray-800 transition"
               >
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    {report.type}
-                  </h2>
-
-                  <p className="text-gray-400 mt-1">
-                    📍 {report.location}
-                  </p>
-
-                  <p className="text-gray-400">
-                    🕒 {report.time}
-                  </p>
+                  <h2 className="text-xl font-semibold">{report.type}</h2>
+                  <p className="text-gray-400 mt-1">📍 {report.location}</p>
+                  <p className="text-gray-400">🕒 {report.time}</p>
                 </div>
 
                 <div
@@ -112,9 +92,7 @@ const Reports = () => {
               </div>
             ))}
         </div>
-
       </div>
-
     </DashboardLayout>
   );
 };

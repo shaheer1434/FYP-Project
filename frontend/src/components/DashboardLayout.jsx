@@ -9,7 +9,7 @@ const DashboardLayout = ({ children, showHeader = false }) => {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4">
         {showHeader && <Header />}
         {children}
       </main>

@@ -9,6 +9,7 @@ import Contact from "./pages/Contact";
 import NotificationsPage from "./pages/Notifications";
 import Setting from "./pages/Setting";
 import IncidentDetails from "./pages/IncidentDetails";
+import NotFound from "./pages/Error";
 
 const isLoggedIn = () => {
   return localStorage.getItem("shieldai_user_loggedin") === "true";
@@ -37,6 +38,7 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
 
+
       {/* Auth Pages */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
@@ -44,7 +46,7 @@ function App() {
       {/* 404 */}
       <Route
         path="*"
-        element={<h1 className="text-white text-center mt-20">404 - Page Not Found</h1>}
+        element={<NotFound />}
       />
 
     </Routes>

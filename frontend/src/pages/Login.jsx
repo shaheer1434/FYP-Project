@@ -1,6 +1,30 @@
 import React from "react";
 import { FaGoogle, FaFacebookF, FaShieldAlt } from "react-icons/fa";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "../firebase/firebase";
+const Login = () => {
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      console.log(result.user);
+      alert("Login Successful");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Login to ShieldAI</h2>
+      <button onClick={handleGoogleLogin}>
+        Login with Google
+      </button>
+    </div>
+  );
+};
+
+export default Login;
 export const LoginPage = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-black text-white">

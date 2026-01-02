@@ -8,6 +8,23 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import { Link } from "react-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase/firebase";
+
+const Signup = () => {
+  const signup = async () => {
+    await createUserWithEmailAndPassword(
+      auth,
+      "test@email.com",
+      "password123"
+    );
+    alert("User Created");
+  };
+
+  return <button onClick={signup}>Sign Up</button>;
+};
+
+export default Signup;
 
 export const SignupPage = () => {
   return (

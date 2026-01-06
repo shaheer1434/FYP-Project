@@ -1,26 +1,19 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
 
-const connectDB = require("./config/db");
+const cameraRoutes = require("./routes/cameras");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connect Database
-connectDB();
+mongoose
+  .connect("mongodb://127.0.0.1:27017/ipcams")
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("Mongo error:", err));
 
-// Routes
-app.use("/api/incidents", require("./routes/incidentRoutes"));
+app.use("/api/cameras", cameraRoutes);
 
-app.get("/", (req, res) => {
-  res.send("ShieldAI Backend Running");
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(5000, () => console.log("Server running on port 5000"));

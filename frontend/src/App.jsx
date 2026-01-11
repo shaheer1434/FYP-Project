@@ -10,6 +10,7 @@ import NotificationsPage from "./pages/Notifications";
 import Setting from "./pages/Setting";
 import IncidentDetails from "./pages/IncidentDetails";
 import NotFound from "./pages/Error";
+import { ForgotPasswordPage } from "./pages/ForgetPassword";
 
 const isLoggedIn = () => {
   return localStorage.getItem("shieldai_user_loggedin") === "true";
@@ -38,7 +39,7 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
 
-
+      <Route path="/forget-password" element={<ForgotPasswordPage />} />
       {/* Auth Pages */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />

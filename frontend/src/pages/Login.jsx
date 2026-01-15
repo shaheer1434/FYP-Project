@@ -1,8 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaGoogle, FaFacebookF, FaEnvelope, FaLock } from "react-icons/fa";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { auth } from "../firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Logged in:", userCredential.user);
+      
+      localStorage.clear();
+      
+      // Store user info in localStorage
+      const userData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName,
+      };
+      
+      localStorage.setItem("shieldai_user", JSON.stringify(userData));
+      localStorage.setItem("shieldai_user_loggedin", "true");
+      
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center text-white px-4 overflow-hidden">
 
@@ -28,47 +71,58 @@ export const LoginPage = () => {
           Welcome back! Please log in to your account
         </p>
 
-        {/* Email */}
-        <div className="mb-4">
-          <label className="text-xs mb-1 block">Email</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaEnvelope className="text-gray-400" />
-            <input
-              type="email"
-              placeholder="Email address"
-              className="w-full bg-transparent outline-none text-sm"
-            />
-          </div>
-        </div>
+        <form onSubmit={handleLogin}>
+          {/* Error Message */}
+          {error && <p className="text-red-400 text-xs text-center mb-3">{error}</p>}
 
-        {/* Password */}
-        <div className="mb-3">
-          <label className="text-xs mb-1 block">Password</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaLock className="text-gray-400" />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full bg-transparent outline-none text-sm"
-            />
+          {/* Email */}
+          <div className="mb-4">
+            <label className="text-xs mb-1 block">Email</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaEnvelope className="text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email address"
+                className="w-full bg-transparent outline-none text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Forgot Password */}
-        <div className="text-right mb-4">
-          <button className="text-xs text-blue-400 hover:underline">
-            Forgot Password?
+          {/* Password */}
+          <div className="mb-3">
+            <label className="text-xs mb-1 block">Password</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaLock className="text-gray-400" />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full bg-transparent outline-none text-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Forgot Password */}
+          <div className="text-right mb-4">
+            <button type="button" className="text-xs text-blue-400 hover:underline">
+              Forgot Password?
+            </button>
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2.5 rounded-xl text-base font-semibold
+            bg-gradient-to-r from-[#091F4E] to-[#1547B4] cursor-pointer
+            hover:opacity-90 transition ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {loading ? "Logging in..." : "Log In"}
           </button>
-        </div>
-
-        {/* Login Button */}
-        <button
-          className="w-full py-2.5 rounded-xl text-base font-semibold
-          bg-gradient-to-r from-[#091F4E] to-[#1547B4]
-          hover:opacity-90 transition"
-        >
-          Log In
-        </button>
+        </form>
 
         {/* Signup Redirect */}
         <p className="text-center text-xs mt-4">

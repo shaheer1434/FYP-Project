@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaGoogle,
   FaFacebookF,
@@ -6,9 +6,54 @@ import {
   FaEnvelope,
   FaLock,
 } from "react-icons/fa";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { auth } from "../firebase/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 export const SignupPage = () => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Update profile with full name
+      await updateProfile(user, {
+        displayName: fullName
+      });
+
+      console.log("User registered:", user);
+      localStorage.clear(); // Clear any old data (Saad etc.)
+      navigate("/login");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center text-white px-4 overflow-hidden">
 
@@ -31,66 +76,81 @@ export const SignupPage = () => {
           Shield AI Signup
         </h1>
 
-        {/* Full Name */}
-        <div className="mb-3">
-          <label className="text-xs mb-1 block">Full Name</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaUser className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Full name"
-              className="w-full bg-transparent outline-none text-sm"
-            />
-          </div>
-        </div>
+        <form onSubmit={handleSignup}>
+          {/* Error Message */}
+          {error && <p className="text-red-400 text-xs text-center mb-3">{error}</p>}
 
-        {/* Email */}
-        <div className="mb-3">
-          <label className="text-xs mb-1 block">Email</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaEnvelope className="text-gray-400" />
-            <input
-              type="email"
-              placeholder="Email address"
-              className="w-full bg-transparent outline-none text-sm"
-            />
+          {/* Full Name */}
+          <div className="mb-3">
+            <label className="text-xs mb-1 block">Full Name</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaUser className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Full name"
+                className="w-full bg-transparent outline-none text-sm"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Password */}
-        <div className="mb-3">
-          <label className="text-xs mb-1 block">Password</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaLock className="text-gray-400" />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full bg-transparent outline-none text-sm"
-            />
+          {/* Email */}
+          <div className="mb-3">
+            <label className="text-xs mb-1 block">Email</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaEnvelope className="text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email address"
+                className="w-full bg-transparent outline-none text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Confirm Password */}
-        <div className="mb-4">
-          <label className="text-xs mb-1 block">Confirm Password</label>
-          <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
-            <FaLock className="text-gray-400" />
-            <input
-              type="password"
-              placeholder="Confirm"
-              className="w-full bg-transparent outline-none text-sm"
-            />
+          {/* Password */}
+          <div className="mb-3">
+            <label className="text-xs mb-1 block">Password</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaLock className="text-gray-400" />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full bg-transparent outline-none text-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Signup Button */}
-        <button
-          className="w-full py-2.5 rounded-xl text-base font-semibold
-          bg-gradient-to-r from-[#091F4E] to-[#1547B4]
-          hover:opacity-90 transition"
-        >
-          Sign Up
-        </button>
+          {/* Confirm Password */}
+          <div className="mb-4">
+            <label className="text-xs mb-1 block">Confirm Password</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaLock className="text-gray-400" />
+              <input
+                type="password"
+                placeholder="Confirm"
+                className="w-full bg-transparent outline-none text-sm"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Signup Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2.5 rounded-xl text-base font-semibold
+            bg-gradient-to-r from-[#091F4E] to-[#1547B4] cursor-pointer
+            hover:opacity-90 transition ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {loading ? "Signing up..." : "Sign Up"}
+          </button>
+        </form>
 
         {/* Login Redirect */}
         <p className="text-center text-xs mt-4">

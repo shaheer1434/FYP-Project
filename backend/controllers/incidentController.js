@@ -1,4 +1,4 @@
-const Incident = require("../models/Incident");
+const Incident = require("../../database/models/Incident");
 
 const addIncident = async (req, res) => {
   try {

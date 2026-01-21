@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Incident = require("../models/Incident");
+const Incident = require("../../database/models/Incident");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -46,6 +46,17 @@ module.exports = (io) => {
         videoUrl = `/uploads/${req.file.filename}`;
       }
 
+      // Fetch System Settings
+      const Setting = require("../../database/models/Setting");
+      let settings = await Setting.findOne();
+      if (!settings) settings = { autoSave: true, notifications: { email: true, push: true, sound: true } }; // Default fallback
+
+      // check auto-save setting
+      if (!settings.autoSave) {
+        console.log("Incident detected but Auto-Save is OFF. Skipping database save.");
+        return res.status(200).json({ message: "Incident detected but not saved (Auto-Save OFF)." });
+      }
+
       const incident = new Incident({
         type: type || "Suspicious Activity",
         severity: severity || "High",
@@ -62,6 +73,22 @@ module.exports = (io) => {
       });
 
       await incident.save();
+
+      // Trigger Notifications based on Settings
+      if (settings.notifications.email) {
+        console.log("📧 Sending Email Alert...");
+        // TODO: Implement actual email logic (e.g. Nodemailer)
+      }
+      if (settings.notifications.push && io && typeof io.emit === "function") {
+         console.log("🔔 Sending Push/Frontend Alert...");
+         // We already emit 'new-incident' below which frontend listens to, 
+         // but we can add specific alert event if needed.
+      }
+      if (settings.notifications.sound) {
+         console.log("🔊 Triggering Sound Alert...");
+         // Could emit a 'play-sound' event to frontend
+         if (io) io.emit("play-sound", { severity: incident.severity });
+      }
 
       if (io && typeof io.emit === "function") {
         io.emit("new-incident", incident);

@@ -1,6 +1,6 @@
 const express = require("express");
 const axios = require("axios");
-const Camera = require("../models/Camera");
+const Camera = require("../../database/models/Camera");
 
 const router = express.Router();
 

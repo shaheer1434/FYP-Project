@@ -11,12 +11,12 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-mongoose
-  .connect("mongodb://127.0.0.1:27017/ipcams")
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("Mongo error:", err));
+const connectDB = require("../database/db");
+connectDB();
 
 app.use("/api/cameras", cameraRoutes);
 app.use("/api/incidents", incidentRoutes(null));
+app.use("/api/settings", require("./routes/settingRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
 
 app.listen(5000, () => console.log("Server running on port 5000"));

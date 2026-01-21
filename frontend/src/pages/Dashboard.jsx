@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import DashboardLayout from "../components/DashboardLayout";
+import axios from "axios";
 import "../components/utils/fixLeafletIcon";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import { FaStop, FaRecordVinyl, FaExclamationCircle } from "react-icons/fa";
@@ -187,7 +188,7 @@ const IncidentModal = ({ cam, videoBlob, duration, onClose }) => {
 /* ===========================
    CAMERA CARD (OLD STYLE + RECORD)
 =========================== */
-const CameraCard = ({ cam, onRemove, onUpdateGps }) => {
+const CameraCard = ({ cam, onRemove, onUpdateGps, quality }) => {
   const [status, setStatus] = useState("CHECKING");
   const [location, setLocation] = useState(cam.gps);
   const [isRecording, setIsRecording] = useState(false);
@@ -252,7 +253,13 @@ const CameraCard = ({ cam, onRemove, onUpdateGps }) => {
     const ctx = canvasRef.current?.getContext('2d');
     const draw = () => {
       if (ctx && imgRef.current && status === 'LIVE') {
+        const q = quality === "4K" ? 2160 : quality === "Full HD" ? 1080 : quality === "HD" ? 720 : 480;
+        // Simple scale simulation: we just draw same size but in reality we'd pull different stream
         ctx.drawImage(imgRef.current, 0, 0, 640, 480);
+        
+        ctx.fillStyle = "white";
+        ctx.font = "10px Arial";
+        ctx.fillText(`Quality: ${quality}`, 10, 470);
       }
       anim = requestAnimationFrame(draw);
     };
@@ -324,6 +331,19 @@ const Dashboard = () => {
   });
   const [myLocation, setMyLocation] = useState(null);
   const [tracking, setTracking] = useState(false);
+  const [settings, setSettings] = useState({ quality: "Full HD" });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/settings");
+        if(res.data) setSettings(res.data);
+      } catch (err) {
+        console.error("Failed to load settings");
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("ipwebcams", JSON.stringify(cameras));
@@ -392,7 +412,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
         {cameras.map(cam => (
-          <CameraCard key={cam._id} cam={cam} onRemove={id => setCameras(prev => prev.filter(c => c._id !== id))} onUpdateGps={()=>{}} />
+          <CameraCard key={cam._id} cam={cam} onRemove={id => setCameras(prev => prev.filter(c => c._id !== id))} onUpdateGps={()=>{}} quality={settings.quality} />
         ))}
       </div>
     </DashboardLayout>

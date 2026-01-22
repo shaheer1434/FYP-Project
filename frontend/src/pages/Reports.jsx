@@ -112,7 +112,7 @@ const Reports = () => {
             <div className="border-b-2 border-black pb-6 mb-6 flex justify-between items-end">
               <div>
                 <h1 className="text-3xl font-black uppercase tracking-tighter">Official Incident Report</h1>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mt-1">GlobalPath AI Surveillance System</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mt-1">Shield-AI Surveillance System</p>
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold">REPORT ID: <span className="font-mono">{reportModal._id.slice(-6).toUpperCase()}</span></p>

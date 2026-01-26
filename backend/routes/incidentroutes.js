@@ -1,40 +1,118 @@
 const express = require("express");
 const router = express.Router();
-const Incident = require("../models/incident");
+const Incident = require("../../database/models/Incident");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
-// Pass io as argument
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage });
+
 module.exports = (io) => {
 
-  // POST new incident
-  router.post("/", async (req, res) => {
+  // GET all incidents
+  router.get("/", async (req, res) => {
     try {
-      const { type, severity, latitude, longitude, cameraId } = req.body;
+      const incidents = await Incident.find().sort({ detectedAt: -1 });
+      res.status(200).json(incidents);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
-      const radiusBySeverity = { Low: 100, Medium: 300, High: 500 };
-      const impactRadius = radiusBySeverity[severity] || 300;
+  // POST new incident with video upload
+  router.post("/", upload.single("video"), async (req, res) => {
+    try {
+      const { type, severity, latitude, longitude, cameraId, source, duration } = req.body;
+      
+      let videoUrl = "";
+      if (req.file) {
+        // Build relative path for frontend access
+        videoUrl = `/uploads/${req.file.filename}`;
+      }
+
+      // Fetch System Settings
+      const Setting = require("../../database/models/Setting");
+      let settings = await Setting.findOne();
+      if (!settings) settings = { autoSave: true, notifications: { email: true, push: true, sound: true } }; // Default fallback
+
+      // check auto-save setting
+      if (!settings.autoSave) {
+        console.log("Incident detected but Auto-Save is OFF. Skipping database save.");
+        return res.status(200).json({ message: "Incident detected but not saved (Auto-Save OFF)." });
+      }
 
       const incident = new Incident({
-        type,
-        severity,
-        impactRadius,
-        source: "IP Webcam",
-        camera: cameraId || null,
+        type: type || "Suspicious Activity",
+        severity: severity || "High",
+        source: source || "Manual Capture",
+        sourceId: cameraId || "Manual",
         gps: {
           type: "Point",
-          coordinates: [longitude, latitude]
+          coordinates: [parseFloat(longitude) || 0, parseFloat(latitude) || 0]
         },
+        duration: parseInt(duration) || 0,
+        videoUrl: videoUrl,
         status: "Open",
         snapshot: ""
       });
 
       await incident.save();
 
-      // Emit new incident to all connected clients
-      io.emit("new-incident", incident);
+      // Trigger Notifications based on Settings
+      if (settings.notifications.email) {
+        console.log("📧 Sending Email Alert...");
+        // TODO: Implement actual email logic (e.g. Nodemailer)
+      }
+      if (settings.notifications.push && io && typeof io.emit === "function") {
+         console.log("🔔 Sending Push/Frontend Alert...");
+         // We already emit 'new-incident' below which frontend listens to, 
+         // but we can add specific alert event if needed.
+      }
+      if (settings.notifications.sound) {
+         console.log("🔊 Triggering Sound Alert...");
+         // Could emit a 'play-sound' event to frontend
+         if (io) io.emit("play-sound", { severity: incident.severity });
+      }
+
+      if (io && typeof io.emit === "function") {
+        io.emit("new-incident", incident);
+      }
 
       res.status(201).json({ message: "Incident saved successfully", incident });
     } catch (err) {
+      console.error("Upload error:", err);
       res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DELETE all incidents (Reset for Exhibition)
+  router.delete("/", async (req, res) => {
+    try {
+      await Incident.deleteMany({});
+      // Optionally delete upload files too
+      const files = fs.readdirSync(uploadDir);
+      for (const file of files) {
+        fs.unlinkSync(path.join(uploadDir, file));
+      }
+      res.status(200).json({ message: "All incidents and files cleared successfully" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   });
 

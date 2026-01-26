@@ -43,6 +43,18 @@ export const SignupPage = () => {
         displayName: fullName
       });
 
+      // Sync user to MongoDB
+      await fetch("http://localhost:5000/api/users/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: fullName,
+          photoURL: user.photoURL
+        }),
+      });
+
       console.log("User registered:", user);
       localStorage.clear(); // Clear any old data (Saad etc.)
       navigate("/login");

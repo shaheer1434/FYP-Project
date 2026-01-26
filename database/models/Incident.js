@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const incidentSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ["Suspicious Activity"],
     required: true
   },
 
@@ -18,9 +17,9 @@ const incidentSchema = new mongoose.Schema({
     default: "IP Webcam"
   },
 
-  camera: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Camera"
+  sourceId: {
+    type: String,
+    default: "Unknown"
   },
 
   gps: {
@@ -38,6 +37,16 @@ const incidentSchema = new mongoose.Schema({
   snapshot: {
     type: String,
     default: ""
+  },
+
+  videoUrl: {
+    type: String,
+    default: ""
+  },
+
+  duration: {
+    type: Number,
+    default: 0
   },
 
   status: {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PageLayout from "../components/PageLayout";
+import axios from "axios";
 import { FaCog, FaBell, FaLock, FaUserAlt, FaAdjust, FaShieldAlt } from "react-icons/fa";
 import { auth } from "../firebase/firebase";
 import { updateProfile, sendPasswordResetEmail } from "firebase/auth";
@@ -12,13 +13,14 @@ const Setting = () => {
   
   // Settings State
   const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [sensitivity, setSensitivity] = useState(localStorage.getItem("setting_sensitivity") || 75);
-  const [quality, setQuality] = useState(localStorage.getItem("setting_quality") || "Full HD");
-  const [autoSave, setAutoSave] = useState(localStorage.getItem("setting_autosave") === "true");
+
+  const [sensitivity, setSensitivity] = useState(75);
+  const [quality, setQuality] = useState("Full HD");
+  const [autoSave, setAutoSave] = useState(true);
   const [notifications, setNotifications] = useState({
-    email: localStorage.getItem("setting_email_alert") === "true",
-    push: localStorage.getItem("setting_push_alert") === "true",
-    sound: localStorage.getItem("setting_sound_alert") === "true",
+    email: true,
+    push: true,
+    sound: true,
   });
 
   const [loading, setLoading] = useState(false);
@@ -27,6 +29,35 @@ const Setting = () => {
     const unsubscribe = auth.onAuthStateChanged((curr) => setUser(curr));
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((curr) => setUser(curr));
+    fetchSettings();
+    return () => unsubscribe();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/settings");
+      if (res.data) {
+        setSensitivity(res.data.sensitivity);
+        setQuality(res.data.quality);
+        setAutoSave(res.data.autoSave);
+        setNotifications(res.data.notifications);
+      }
+    } catch (err) {
+      console.error("Error loading settings:", err);
+    }
+  };
+
+  const saveSettings = async (data) => {
+    try {
+      await axios.put("http://localhost:5000/api/settings", data);
+      // toast.success("Settings saved"); // Optional: reduce noise
+    } catch (err) {
+      toast.error("Failed to save settings");
+    }
+  };
 
   // Handlers
   const handleUpdateProfile = async (e) => {
@@ -57,14 +88,28 @@ const Setting = () => {
 
   const toggleNotification = (key) => {
     const newVal = !notifications[key];
-    setNotifications({ ...notifications, [key]: newVal });
-    localStorage.setItem(`setting_${key}_alert`, newVal);
+    const updatedNotify = { ...notifications, [key]: newVal };
+    setNotifications(updatedNotify);
+    saveSettings({ sensitivity, quality, autoSave, notifications: updatedNotify });
   };
 
   const toggleAutoSave = () => {
     const newVal = !autoSave;
     setAutoSave(newVal);
-    localStorage.setItem("setting_autosave", newVal);
+    saveSettings({ sensitivity, quality, autoSave: newVal, notifications });
+  };
+
+  const handleSensitivityChange = (val) => {
+    setSensitivity(val);
+  };
+  
+  const saveSensitivity = () => {
+     saveSettings({ sensitivity, quality, autoSave, notifications });
+  };
+
+  const handleQualityChange = (val) => {
+    setQuality(val);
+    saveSettings({ sensitivity, quality: val, autoSave, notifications });
   };
 
   const sections = [
@@ -109,17 +154,16 @@ const Setting = () => {
                   <FaAdjust className="text-blue-400" /> System Preferences
                 </h3>
                 <div className="space-y-6">
-                  <SettingItem 
+                    <SettingItem 
                     title="Detection Sensitivity" 
                     desc={`Threshold: ${sensitivity}%`}
                     control={
                       <input 
                         type="range" 
                         value={sensitivity}
-                        onChange={(e) => {
-                          setSensitivity(e.target.value);
-                          localStorage.setItem("setting_sensitivity", e.target.value);
-                        }}
+                        onChange={(e) => handleSensitivityChange(e.target.value)}
+                        onMouseUp={saveSensitivity}
+                        onTouchEnd={saveSensitivity}
                         className="w-full accent-blue-500" 
                       />
                     }
@@ -130,10 +174,7 @@ const Setting = () => {
                     control={
                       <select 
                         value={quality}
-                        onChange={(e) => {
-                          setQuality(e.target.value);
-                          localStorage.setItem("setting_quality", e.target.value);
-                        }}
+                        onChange={(e) => handleQualityChange(e.target.value)}
                         className="bg-white/10 text-white border border-white/10 rounded-xl px-3 py-1.5 outline-none text-xs font-bold focus:border-blue-500"
                       >
                         <option value="4K">4K Ultra HD</option>

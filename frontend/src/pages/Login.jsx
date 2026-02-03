@@ -1,86 +1,166 @@
-import React from "react";
-import { FaGoogle, FaFacebookF, FaShieldAlt } from "react-icons/fa";
+import React, { useState } from "react";
+import { FaGoogle, FaFacebookF, FaEnvelope, FaLock } from "react-icons/fa";
+import { Link, useNavigate } from "react-router";
+import { auth } from "../firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export const LoginPage = () => {
-  return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-black text-white">
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Logged in:", userCredential.user);
+
+      // Sync user to MongoDB
+      await fetch("http://localhost:5000/api/users/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL
+        }),
+      });
       
-      {/* Left Section */}
-{/* Left Section */}
-<div
-  className="hidden lg:block lg:w-1/2 h-screen bg-no-repeat bg-center bg-cover rounded-r-[80px]"
-  style={{ backgroundImage: "url('/camera.png')" }}
-/>
+      localStorage.clear();
+      
+      // Store user info in localStorage
+      const userData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName,
+      };
+      
+      localStorage.setItem("shieldai_user", JSON.stringify(userData));
+      localStorage.setItem("shieldai_user_loggedin", "true");
+      
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  return (
+    <div className="relative min-h-screen flex items-center justify-center text-white px-4 overflow-hidden">
 
-      {/* Right Section */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-gradient-to-b from-[#131B42] to-[#0C112D] px-4">
-        
-        <div className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-xl">
-          
-          {/* Heading */}
-          <h1 className="text-3xl font-extrabold tracking-wider text-center mb-2">
-            Shield AI Login
-          </h1>
-          <p className="text-center text-sm text-gray-300 mb-8">
-            Welcome back! Please log in to your account
-          </p>
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center scale-105 blur-lg"
+        style={{ backgroundImage: "url('/camera.png')" }}
+      />
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0C112D]/90 via-[#131B42]/90 to-[#091F4E]/90" />
+
+      {/* Glass Card */}
+      <div
+        className="relative w-full max-w-xl bg-white/10 backdrop-blur-xl
+        border border-white/20 rounded-3xl p-7 shadow-2xl"
+      >
+        {/* Heading */}
+        <h1 className="text-2xl font-bold text-center mb-2 tracking-wide">
+          Shield AI Login
+        </h1>
+        <p className="text-center text-xs text-gray-300 mb-5">
+          Welcome back! Please log in to your account
+        </p>
+
+        <form onSubmit={handleLogin}>
+          {/* Error Message */}
+          {error && <p className="text-red-400 text-xs text-center mb-3">{error}</p>}
 
           {/* Email */}
-          <div className="mb-5">
-            <label className="block mb-2 text-sm">Email</label>
-            <input
-              type="email"
-              placeholder="e.g matthew.doe@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="mb-4">
+            <label className="text-xs mb-1 block">Email</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaEnvelope className="text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email address"
+                className="w-full bg-transparent outline-none text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Password */}
           <div className="mb-3">
-            <label className="block mb-2 text-sm">Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-xs mb-1 block">Password</label>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-blue-500 transition">
+              <FaLock className="text-gray-400" />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full bg-transparent outline-none text-sm"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Forgot Password */}
-          <div className="text-right mb-6">
-            <button className="text-sm text-gray-300 hover:text-white">
+          <div className="text-right mb-4">
+            <button type="button" className="text-xs text-blue-400 hover:underline">
               Forgot Password?
             </button>
           </div>
 
           {/* Login Button */}
-          <button className="w-full py-3 rounded-xl bg-gradient-to-r from-[#091F4E] to-[#1547B4] font-bold text-lg hover:opacity-90 transition">
-            Log In
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2.5 rounded-xl text-base font-semibold
+            bg-gradient-to-r from-[#091F4E] to-[#1547B4] cursor-pointer
+            hover:opacity-90 transition ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {loading ? "Logging in..." : "Log In"}
           </button>
+        </form>
 
-          {/* Signup */}
-          <p className="text-center text-sm mt-6">
-            Don’t have an account?{" "}
-            <span className="text-blue-500 cursor-pointer hover:underline">
-              Sign Up
-            </span>
-          </p>
+        {/* Signup Redirect */}
+        <p className="text-center text-xs mt-4">
+          Don’t have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-blue-400 hover:underline font-medium"
+          >
+            Sign Up
+          </Link>
+        </p>
 
-          {/* Social Login */}
-          <div className="flex justify-center gap-6 mt-6">
-            <button className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition">
-              <FaGoogle size={22} />
-            </button>
-            <button className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition">
-              <FaFacebookF size={22} />
-            </button>
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-xs text-gray-400 mt-8">
-            © 2025 Shield AI — Secure Surveillance System
-          </p>
+        {/* Social Login */}
+        <div className="flex justify-center gap-4 mt-4">
+          <button className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition">
+            <FaGoogle size={18} />
+          </button>
+          <button className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition">
+            <FaFacebookF size={18} />
+          </button>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[11px] text-gray-400 mt-5">
+          © 2025 Shield AI — Secure Surveillance System
+        </p>
       </div>
     </div>
   );

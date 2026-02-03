@@ -1,5 +1,6 @@
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import "leaflet/dist/leaflet.css";
 
 
 const DashboardLayout = ({ children }) => {

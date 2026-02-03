@@ -1,0 +1,27 @@
+{
+  "name": "fyp-project",
+  "version": "1.0.0",
+  "description": "this is our Final Year University Project Which is Based on IOT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shaheer1434/FYP-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shaheer1434/FYP-Project/issues"
+  },
+  "homepage": "https://github.com/shaheer1434/FYP-Project#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongoose": "^9.1.4"
+  }
+}
